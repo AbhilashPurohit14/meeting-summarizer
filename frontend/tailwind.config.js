@@ -4,30 +4,36 @@ export default {
   theme: {
     extend: {
       colors: {
-        ink: "#020617",
-        panel: "#0f172a",
-        accent: "#22c55e",
-        glow: "#38bdf8",
+        ink: "#0a0a09",
+        graphite: "#151412",
+        panel: "#191815",
+        line: "#302d27",
+        "line-soft": "#211f1b",
+        ash: "#8c877b",
+        mist: "#b8b2a3",
+        paper: "#efeade",
+        stamp: "#716b5c",
       },
       fontFamily: {
-        display: ["Poppins", "sans-serif"],
-        body: ["Manrope", "sans-serif"],
+        display: ["Space Grotesk", "sans-serif"],
+        body: ["Inter", "sans-serif"],
+        mono: ["JetBrains Mono", "monospace"],
       },
       boxShadow: {
-        soft: "0 20px 60px rgba(15, 23, 42, 0.45)",
+        soft: "0 24px 60px rgba(0, 0, 0, 0.55)",
       },
       animation: {
-        float: "float 6s ease-in-out infinite",
-        reveal: "reveal 600ms ease forwards",
+        reveal: "reveal 500ms ease forwards",
+        "pulse-soft": "pulse-soft 2.4s ease-in-out infinite",
       },
       keyframes: {
-        float: {
-          "0%, 100%": { transform: "translateY(0px)" },
-          "50%": { transform: "translateY(-10px)" },
-        },
         reveal: {
-          "0%": { opacity: "0", transform: "translateY(16px)" },
+          "0%": { opacity: "0", transform: "translateY(10px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "pulse-soft": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.35" },
         },
       },
     },
