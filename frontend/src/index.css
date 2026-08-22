@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Poppins:wght@500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -9,13 +9,21 @@
 }
 
 body {
-  @apply min-h-screen bg-slate-950 font-body text-slate-100 antialiased;
+  @apply min-h-screen bg-ink font-body text-paper antialiased;
   background-image:
-    radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 30%),
-    radial-gradient(circle at top right, rgba(34, 197, 94, 0.14), transparent 28%),
-    linear-gradient(180deg, #020617 0%, #020617 100%);
+    radial-gradient(circle at 50% -10%, rgba(239, 234, 222, 0.05), transparent 40%),
+    linear-gradient(180deg, #0a0a09 0%, #0a0a09 100%);
 }
 
 #root {
   @apply min-h-screen;
+}
+
+::selection {
+  background: #efeade;
+  color: #0a0a09;
+}
+
+.mono-eyebrow {
+  @apply font-mono text-[0.7rem] uppercase tracking-[0.28em] text-ash;
 }
