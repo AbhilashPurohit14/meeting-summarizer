@@ -1,6 +1,6 @@
 # AI Meeting Summarizer
 
-A production-minded prototype for technical hiring assessments that converts uploaded meeting audio into a grounded transcript plus a structured AI summary. The app is optimized for transcription reliability, low-hallucination summarization, modular backend design, and a sleek dark-mode interface suitable for a recruiter or evaluator demo.
+A production-minded prototype for technical hiring assessments that converts uploaded meeting audio into a grounded transcript plus a structured AI summary. The app is optimized for transcription reliability, low-hallucination summarization, modular backend design, and a graphite, case-file-style interface suitable for a recruiter or evaluator demo.
 
 ## Why This Stack
 
@@ -8,6 +8,15 @@ A production-minded prototype for technical hiring assessments that converts upl
 - `Groq Whisper Large v3` is the default ASR path because Groq offers a free tier, OpenAI-compatible speech endpoints, and a strong accuracy/speed profile for meeting transcription.
 - `Gemini` is the default summarization model because its free tier supports structured JSON generation and gives strong prompt-following for extractor-style summaries.
 - `React + Vite + Tailwind + Lucide` provides a fast setup path and enough design control to produce a polished UI instead of a generic CRUD screen.
+
+## Design Direction
+
+The UI follows a monochrome "case file" visual identity rather than a generic dark SaaS template:
+
+- **Palette**: pure graphite/warm-black tones, no color accents.
+- **Type**: `Space Grotesk` for headings, `Inter` for body copy, `JetBrains Mono` for anything that's structured/extracted data (status fields, the action-items table, file metadata) so machine-extracted content is visually distinct from prose.
+- **Layout**: sharp-cornered bordered panels and hairline dividers instead of soft glowing cards, styled like a report or dossier.
+- **Signature detail**: a rotated "grounded, no invented owners or dates" stamp in the hero, tying the visual language directly to the backend's anti-hallucination prompt constraints.
 
 ## System Architecture
 
