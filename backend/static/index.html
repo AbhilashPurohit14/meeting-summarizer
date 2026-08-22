@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Meeting Summarizer</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #020617;
+        --panel: rgba(15, 23, 42, 0.82);
+        --border: rgba(71, 85, 105, 0.45);
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --accent: #22c55e;
+        --accent-2: #38bdf8;
+        --danger: #fb7185;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Segoe UI", system-ui, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(56, 189, 248, 0.15), transparent 25%),
+          radial-gradient(circle at top right, rgba(34, 197, 94, 0.14), transparent 24%),
+          var(--bg);
+      }
+
+      .shell {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 32px 20px 48px;
+      }
+
+      .hero,
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 28px;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 24px 80px rgba(2, 6, 23, 0.35);
+      }
+
+      .hero {
+        padding: 32px;
+        display: grid;
+        gap: 24px;
+      }
+
+      .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.28em;
+        color: #7dd3fc;
+        font-size: 12px;
+        margin: 0 0 12px;
+      }
+
+      h1, h2, h3, p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: clamp(2.2rem, 6vw, 4rem);
+        line-height: 1.05;
+      }
+
+      .sub {
+        color: var(--muted);
+        margin-top: 16px;
+        max-width: 760px;
+        line-height: 1.7;
+        font-size: 1.05rem;
+      }
+
+      .status-card {
+        justify-self: end;
+        width: 100%;
+        max-width: 360px;
+        padding: 22px;
+        border-radius: 24px;
+        border: 1px solid var(--border);
+        background: rgba(2, 6, 23, 0.62);
+      }
+
+      .status-label {
+        text-transform: uppercase;
+        letter-spacing: 0.24em;
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .status-text {
+        margin-top: 12px;
+        font-size: 1.7rem;
+        font-weight: 700;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 0.95fr 1.05fr;
+        gap: 24px;
+        margin-top: 24px;
+      }
+
+      .panel {
+        padding: 24px;
+      }
+
+      .dropzone {
+        margin-top: 18px;
+        min-height: 280px;
+        border-radius: 26px;
+        border: 1px dashed rgba(125, 211, 252, 0.35);
+        background: rgba(2, 6, 23, 0.58);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 24px;
+        cursor: pointer;
+        transition: 180ms ease;
+      }
+
+      .dropzone.dragging,
+      .dropzone:hover {
+        border-color: rgba(125, 211, 252, 0.9);
+        background: rgba(14, 116, 144, 0.12);
+      }
+
+      .helper {
+        margin-top: 12px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .stack {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .badge {
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 8px 12px;
+        font-size: 0.82rem;
+        color: #dbeafe;
+        background: rgba(15, 23, 42, 0.7);
+      }
+
+      .tips {
+        margin-top: 16px;
+        padding-left: 18px;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .tips li + li {
+        margin-top: 8px;
+      }
+
+      button.primary {
+        width: 100%;
+        margin-top: 18px;
+        border: 0;
+        border-radius: 18px;
+        padding: 16px 18px;
+        font-size: 1rem;
+        font-weight: 700;
+        background: var(--accent);
+        color: #03220e;
+        cursor: pointer;
+      }
+
+      button.primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .error {
+        margin-top: 16px;
+        border: 1px solid rgba(251, 113, 133, 0.3);
+        background: rgba(190, 24, 93, 0.12);
+        color: #fecdd3;
+        border-radius: 16px;
+        padding: 14px;
+      }
+
+      .summary-grid {
+        display: grid;
+        gap: 18px;
+      }
+
+      .card {
+        border: 1px solid var(--border);
+        background: rgba(2, 6, 23, 0.55);
+        border-radius: 22px;
+        padding: 20px;
+      }
+
+      .list {
+        display: grid;
+        gap: 12px;
+        margin-top: 14px;
+      }
+
+      .pill {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 14px;
+        background: rgba(15, 23, 42, 0.75);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+        overflow: hidden;
+      }
+
+      th,
+      td {
+        text-align: left;
+        padding: 14px;
+        border-top: 1px solid var(--border);
+        vertical-align: top;
+      }
+
+      th {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      pre {
+        white-space: pre-wrap;
+        line-height: 1.65;
+        color: #cbd5e1;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      @media (max-width: 900px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .status-card {
+          justify-self: stretch;
+          max-width: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Assessment Prototype</p>
+          <h1>AI Meeting Summarizer with grounded transcription and decision-grade outputs.</h1>
+          <p class="sub">
+            Upload a meeting recording and get a structured executive summary, finalized
+            decisions, and action items with ownership and deadlines only when explicitly stated.
+          </p>
+          <div id="providerBadges" class="stack">
+            <span class="badge">Loading provider stack...</span>
+          </div>
+        </div>
+        <div class="status-card">
+          <p class="status-label">Current Status</p>
+          <p id="statusText" class="status-text">Ready to analyze your meeting.</p>
+          <p class="helper">This preview is served directly by FastAPI so you can test the prototype immediately.</p>
+        </div>
+      </section>
+
+      <section class="grid">
+        <article class="panel">
+          <p class="eyebrow" style="color:#86efac;">Upload Audio</p>
+          <h2>Drop your file here</h2>
+          <p class="helper">Supported formats: mp3, wav, m4a, ogg, webm, mp4, mpeg, mpga, flac.</p>
+
+          <div id="dropzone" class="dropzone">
+            <div>
+              <h3 id="fileLabel">Drag and drop or click to browse</h3>
+              <p class="helper">Designed for clean interviewer demos with explicit loading states and structured outputs.</p>
+            </div>
+          </div>
+
+          <input
+            id="fileInput"
+            type="file"
+            accept=".mp3,.wav,.m4a,.ogg,.webm,.mp4,.mpeg,.mpga,.flac"
+            class="hidden"
+          />
+
+          <div id="errorBox" class="error hidden"></div>
+          <button id="submitButton" class="primary">Generate Summary</button>
+        </article>
+
+        <section id="resultPanel" class="panel">
+          <div id="placeholderState">
+            <h2>Structured insights appear here</h2>
+            <p class="helper" style="max-width: 520px; margin-top: 14px;">
+              The result view is optimized for evaluator readability: a concise executive summary,
+              committed decisions, and action items that stay grounded in the transcript.
+            </p>
+            <ul id="demoTips" class="tips">
+              <li>Use a short meeting clip with clear speech for the best first demo.</li>
+              <li>The summarizer only extracts facts explicitly stated in the transcript.</li>
+              <li>Provider-specific issues are surfaced with targeted error messages.</li>
+            </ul>
+          </div>
+
+          <div id="summaryState" class="summary-grid hidden">
+            <div class="card">
+              <h3>Executive Summary</h3>
+              <p id="executiveSummary" class="helper" style="color:#cbd5e1; margin-top: 14px;"></p>
+            </div>
+
+            <div class="card">
+              <h3>Key Decisions</h3>
+              <div id="keyDecisions" class="list"></div>
+            </div>
+
+            <div class="card">
+              <h3>Action Items</h3>
+              <div id="actionItemsWrap"></div>
+            </div>
+
+            <div class="card">
+              <h3>Transcript</h3>
+              <pre id="transcriptText"></pre>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      const dropzone = document.getElementById("dropzone");
+      const fileInput = document.getElementById("fileInput");
+      const fileLabel = document.getElementById("fileLabel");
+      const submitButton = document.getElementById("submitButton");
+      const statusText = document.getElementById("statusText");
+      const errorBox = document.getElementById("errorBox");
+      const placeholderState = document.getElementById("placeholderState");
+      const summaryState = document.getElementById("summaryState");
+      const providerBadges = document.getElementById("providerBadges");
+      const demoTips = document.getElementById("demoTips");
+      let selectedFile = null;
+
+      async function hydrateMetadata() {
+        try {
+          const response = await fetch("/api/meta");
+          if (!response.ok) {
+            return;
+          }
+
+          const payload = await response.json();
+          providerBadges.innerHTML = `
+            <span class="badge">ASR: ${payload.provider_config.asr_provider} / ${payload.provider_config.asr_model}</span>
+            <span class="badge">LLM: ${payload.provider_config.llm_provider} / ${payload.provider_config.llm_model}</span>
+          `;
+
+          if (Array.isArray(payload.demo_tips) && payload.demo_tips.length) {
+            demoTips.innerHTML = payload.demo_tips.map((tip) => `<li>${tip}</li>`).join("");
+          }
+        } catch (_) {
+          // Keep the static fallback content if metadata loading fails.
+        }
+      }
+
+      function setError(message) {
+        if (!message) {
+          errorBox.textContent = "";
+          errorBox.classList.add("hidden");
+          return;
+        }
+
+        errorBox.textContent = message;
+        errorBox.classList.remove("hidden");
+      }
+
+      function setSummaryVisible(visible) {
+        summaryState.classList.toggle("hidden", !visible);
+        placeholderState.classList.toggle("hidden", visible);
+      }
+
+      function setSelectedFile(file) {
+        selectedFile = file;
+        if (file) {
+          fileLabel.textContent = file.name;
+          statusText.textContent = "File attached. Ready for transcription.";
+          setError("");
+          setSummaryVisible(false);
+        }
+      }
+
+      dropzone.addEventListener("click", () => fileInput.click());
+      dropzone.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        dropzone.classList.add("dragging");
+      });
+      dropzone.addEventListener("dragleave", () => {
+        dropzone.classList.remove("dragging");
+      });
+      dropzone.addEventListener("drop", (event) => {
+        event.preventDefault();
+        dropzone.classList.remove("dragging");
+        setSelectedFile(event.dataTransfer.files[0]);
+      });
+      fileInput.addEventListener("change", (event) => setSelectedFile(event.target.files[0]));
+      hydrateMetadata();
+
+      submitButton.addEventListener("click", async () => {
+        if (!selectedFile) {
+          setError("Please upload an audio file before generating a summary.");
+          return;
+        }
+
+        setError("");
+        submitButton.disabled = true;
+        statusText.textContent = "Transcribing...";
+        setSummaryVisible(false);
+
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+
+        const phaseTimer = setTimeout(() => {
+          statusText.textContent = "Extracting insights...";
+        }, 1400);
+
+        try {
+          const response = await fetch("/api/summarize", {
+            method: "POST",
+            body: formData,
+          });
+
+          clearTimeout(phaseTimer);
+          const payload = await response.json();
+
+          if (!response.ok) {
+            throw new Error(payload.detail || "Something went wrong while processing the file.");
+          }
+
+          document.getElementById("executiveSummary").textContent = payload.executive_summary;
+
+          const decisions = document.getElementById("keyDecisions");
+          decisions.innerHTML = "";
+          if (payload.key_decisions.length) {
+            payload.key_decisions.forEach((decision) => {
+              const item = document.createElement("div");
+              item.className = "pill";
+              item.textContent = decision;
+              decisions.appendChild(item);
+            });
+          } else {
+            decisions.innerHTML = '<p class="muted">No finalized decisions were detected.</p>';
+          }
+
+          const actionWrap = document.getElementById("actionItemsWrap");
+          if (payload.action_items.length) {
+            const rows = payload.action_items
+              .map(
+                (item) => `
+                  <tr>
+                    <td>${item.task}</td>
+                    <td>${item.owner}</td>
+                    <td>${item.deadline}</td>
+                  </tr>
+                `,
+              )
+              .join("");
+
+            actionWrap.innerHTML = `
+              <table>
+                <thead>
+                  <tr>
+                    <th>Task</th>
+                    <th>Owner</th>
+                    <th>Deadline</th>
+                  </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+              </table>
+            `;
+          } else {
+            actionWrap.innerHTML = '<p class="muted">No action items were detected.</p>';
+          }
+
+          document.getElementById("transcriptText").textContent = payload.transcription;
+          setSummaryVisible(true);
+          statusText.textContent = "Summary generated successfully.";
+        } catch (error) {
+          clearTimeout(phaseTimer);
+          setError(error.message);
+          statusText.textContent = "Upload failed.";
+        } finally {
+          submitButton.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>
