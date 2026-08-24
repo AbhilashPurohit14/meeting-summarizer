@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
-import { AudioLines, LoaderCircle, UploadCloud } from "lucide-react";
+import { AudioLines, Clock, LoaderCircle, UploadCloud } from "lucide-react";
 import SummaryCard from "./components/SummaryCard";
+import HistoryPanel from "./components/HistoryPanel";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000";
 const SUPPORTED_EXTENSIONS = [
@@ -17,6 +18,7 @@ const SUPPORTED_EXTENSIONS = [
 
 function App() {
   const inputRef = useRef(null);
+  const [activeTab, setActiveTab] = useState("summarize");
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [statusText, setStatusText] = useState("Ready to analyze your meeting.");
@@ -140,105 +142,144 @@ function App() {
         </div>
       </section>
 
+      {/* Tab navigation */}
+      <div className="mt-8 flex gap-1 border-b border-line">
+        <button
+          type="button"
+          onClick={() => setActiveTab("summarize")}
+          className={`flex items-center gap-2 border-b-2 px-4 py-3 font-mono text-xs uppercase tracking-[0.2em] transition ${
+            activeTab === "summarize"
+              ? "border-paper text-paper"
+              : "border-transparent text-ash hover:text-mist"
+          }`}
+        >
+          <AudioLines size={14} />
+          New summary
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("history")}
+          className={`flex items-center gap-2 border-b-2 px-4 py-3 font-mono text-xs uppercase tracking-[0.2em] transition ${
+            activeTab === "history"
+              ? "border-paper text-paper"
+              : "border-transparent text-ash hover:text-mist"
+          }`}
+        >
+          <Clock size={14} />
+          History
+        </button>
+      </div>
+
       {/* Upload + Result */}
-      <section className="mt-8 grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
-        <article className="rounded-md border border-line bg-graphite p-6 shadow-soft">
-          <div className="mb-6">
-            <p className="mono-eyebrow">Upload audio</p>
-            <h2 className="mt-2 font-display text-2xl font-semibold text-paper">
-              Drop your meeting file here
-            </h2>
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {SUPPORTED_EXTENSIONS.map((ext) => (
-                <span
-                  key={ext}
-                  className="rounded-sm border border-line-soft px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wide text-ash"
-                >
-                  .{ext}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={openFilePicker}
-            onDragOver={(event) => {
-              event.preventDefault();
-              setIsDragging(true);
-            }}
-            onDragLeave={() => setIsDragging(false)}
-            onDrop={(event) => {
-              event.preventDefault();
-              setIsDragging(false);
-              handleFileSelection(event.dataTransfer.files?.[0]);
-            }}
-            className={`flex min-h-72 w-full flex-col items-center justify-center rounded-md border border-dashed px-6 text-center transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-paper ${
-              isDragging
-                ? "border-paper bg-panel"
-                : "border-line bg-ink hover:border-mist hover:bg-panel/60"
-            }`}
-          >
-            <div className="rounded-sm border border-line p-4 text-paper">
-              <UploadCloud size={30} />
-            </div>
-            <p className="mt-5 text-xl font-semibold text-paper">
-              {selectedFile ? selectedFile.name : "Drag and drop or click to browse"}
-            </p>
-            <p className="mt-3 max-w-sm text-sm leading-6 text-ash">
-              Designed for interview demos: fast feedback, clear state transitions, and
-              structured results.
-            </p>
-          </button>
-
-          <input
-            ref={inputRef}
-            type="file"
-            accept=".mp3,.wav,.m4a,.ogg,.webm,.mp4,.mpeg,.mpga,.flac"
-            className="hidden"
-            onChange={(event) => handleFileSelection(event.target.files?.[0])}
-          />
-
-          {error ? (
-            <div className="mt-5 rounded-sm border border-line bg-panel px-4 py-3 font-mono text-sm text-paper">
-              <span className="mr-2 uppercase tracking-wide text-ash">Error //</span>
-              {error}
-            </div>
-          ) : null}
-
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={isLoading}
-            className="mt-6 inline-flex w-full items-center justify-center gap-3 rounded-sm bg-paper px-5 py-4 text-base font-semibold text-ink transition hover:bg-mist disabled:cursor-not-allowed disabled:bg-line disabled:text-ash"
-          >
-            {isLoading ? <LoaderCircle className="animate-spin" size={20} /> : <AudioLines size={20} />}
-            {isLoading ? "Processing Meeting..." : "Generate Summary"}
-          </button>
-        </article>
-
-        <div>
-          {summary ? (
-            <SummaryCard summary={summary} />
-          ) : (
-            <section className="flex h-full min-h-[28rem] items-center justify-center rounded-md border border-line bg-graphite p-8 text-center shadow-soft">
-              <div>
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-sm border border-line text-paper">
-                  <AudioLines size={28} />
-                </div>
-                <p className="mono-eyebrow mt-6">Awaiting input</p>
-                <h2 className="mt-2 font-display text-2xl font-semibold text-paper">
-                  Structured insights appear here
-                </h2>
-                <p className="mt-4 max-w-lg text-mist">
-                  The result view highlights the executive narrative, committed decisions, and
-                  ownership-ready action items so evaluators can judge both UX and prompt quality.
-                </p>
+      {activeTab === "summarize" ? (
+        <section className="mt-8 grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
+          <article className="rounded-md border border-line bg-graphite p-6 shadow-soft">
+            <div className="mb-6">
+              <p className="mono-eyebrow">Upload audio</p>
+              <h2 className="mt-2 font-display text-2xl font-semibold text-paper">
+                Drop your meeting file here
+              </h2>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {SUPPORTED_EXTENSIONS.map((ext) => (
+                  <span
+                    key={ext}
+                    className="rounded-sm border border-line-soft px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wide text-ash"
+                  >
+                    .{ext}
+                  </span>
+                ))}
               </div>
-            </section>
-          )}
+            </div>
+
+            <button
+              type="button"
+              onClick={openFilePicker}
+              onDragOver={(event) => {
+                event.preventDefault();
+                setIsDragging(true);
+              }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={(event) => {
+                event.preventDefault();
+                setIsDragging(false);
+                handleFileSelection(event.dataTransfer.files?.[0]);
+              }}
+              className={`flex min-h-72 w-full flex-col items-center justify-center rounded-md border border-dashed px-6 text-center transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-paper ${
+                isDragging
+                  ? "border-paper bg-panel"
+                  : "border-line bg-ink hover:border-mist hover:bg-panel/60"
+              }`}
+            >
+              <div className="rounded-sm border border-line p-4 text-paper">
+                <UploadCloud size={30} />
+              </div>
+              <p className="mt-5 text-xl font-semibold text-paper">
+                {selectedFile ? selectedFile.name : "Drag and drop or click to browse"}
+              </p>
+              <p className="mt-3 max-w-sm text-sm leading-6 text-ash">
+                Designed for interview demos: fast feedback, clear state transitions, and
+                structured results.
+              </p>
+            </button>
+
+            <input
+              ref={inputRef}
+              type="file"
+              accept=".mp3,.wav,.m4a,.ogg,.webm,.mp4,.mpeg,.mpga,.flac"
+              className="hidden"
+              onChange={(event) => handleFileSelection(event.target.files?.[0])}
+            />
+
+            {error ? (
+              <div className="mt-5 rounded-sm border border-line bg-panel px-4 py-3 font-mono text-sm text-paper">
+                <span className="mr-2 uppercase tracking-wide text-ash">Error //</span>
+                {error}
+              </div>
+            ) : null}
+
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={isLoading}
+              className="mt-6 inline-flex w-full items-center justify-center gap-3 rounded-sm bg-paper px-5 py-4 text-base font-semibold text-ink transition hover:bg-mist disabled:cursor-not-allowed disabled:bg-line disabled:text-ash"
+            >
+              {isLoading ? (
+                <LoaderCircle className="animate-spin" size={20} />
+              ) : (
+                <AudioLines size={20} />
+              )}
+              {isLoading ? "Processing Meeting..." : "Generate Summary"}
+            </button>
+          </article>
+
+          <div>
+            {summary ? (
+              <SummaryCard summary={summary} />
+            ) : (
+              <section className="flex h-full min-h-[28rem] items-center justify-center rounded-md border border-line bg-graphite p-8 text-center shadow-soft">
+                <div>
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-sm border border-line text-paper">
+                    <AudioLines size={28} />
+                  </div>
+                  <p className="mono-eyebrow mt-6">Awaiting input</p>
+                  <h2 className="mt-2 font-display text-2xl font-semibold text-paper">
+                    Structured insights appear here
+                  </h2>
+                  <p className="mt-4 max-w-lg text-mist">
+                    The result view highlights the executive narrative, committed decisions, and
+                    ownership-ready action items so evaluators can judge both UX and prompt
+                    quality.
+                  </p>
+                </div>
+              </section>
+            )}
+          </div>
+        </section>
+      ) : (
+        <div className="mt-8">
+          <HistoryPanel key={summary?.filename ?? "history"} />
         </div>
-      </section>
+      )}
     </main>
   );
 }

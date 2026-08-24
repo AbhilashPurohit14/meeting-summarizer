@@ -110,6 +110,8 @@ SummaryCard.propTypes = {
     ).isRequired,
     transcription: PropTypes.string.isRequired,
     detected_language: PropTypes.string,
+    id: PropTypes.number,
+    created_at: PropTypes.string,
   }).isRequired,
 };
 
