@@ -1,6 +1,7 @@
 # AI Meeting Summarizer
 
 DEMO VIDEO LINK : https://drive.google.com/file/d/1JMJkkqMoDsB3v_2KpUtRqVYQJBGDNi__/view?usp=drive_link
+
 A production-minded prototype for technical hiring assessments that converts uploaded meeting audio into a grounded transcript plus a structured AI summary. The app is optimized for transcription reliability, low-hallucination summarization, modular backend design, and a graphite, case-file-style interface suitable for a recruiter or evaluator demo.
 
 ## Why This Stack
