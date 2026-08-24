@@ -1,13 +1,28 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, File, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from sqlmodel import Session
 
 from config import get_settings
-from models import AppMetadataResponse, HealthResponse, ProviderConfig, SummaryResponse
+from database import (
+    clear_all_summary_records,
+    get_session,
+    get_summary_record,
+    init_db,
+    list_summary_records,
+    save_summary_record,
+)
+from models import (
+    AppMetadataResponse,
+    HealthResponse,
+    ProviderConfig,
+    SavedSummaryResponse,
+    SummaryResponse,
+)
 from services.audio_service import AudioService
 from services.llm_service import LLMService
 
@@ -19,6 +34,7 @@ STATIC_DIR = BASE_DIR / "static"
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    init_db()
     yield
 
 
@@ -74,9 +90,23 @@ async def serve_frontend() -> FileResponse:
 
 
 @app.post("/api/summarize", response_model=SummaryResponse)
-async def summarize_meeting(file: UploadFile = File(...)) -> SummaryResponse:
+async def summarize_meeting(
+    file: UploadFile = File(...),
+    session: Session = Depends(get_session),
+) -> SummaryResponse:
     transcription_result = await audio_service.transcribe(file)
     summary_payload = llm_service.summarize_transcript(transcription_result["text"])
+
+    save_summary_record(
+        session,
+        filename=transcription_result["filename"],
+        transcription=transcription_result["text"],
+        executive_summary=summary_payload["executive_summary"],
+        key_decisions=summary_payload["key_decisions"],
+        action_items=summary_payload["action_items"],
+        detected_language=transcription_result["language"],
+        duration_seconds=transcription_result["duration"],
+    )
 
     return SummaryResponse(
         filename=transcription_result["filename"],
@@ -87,3 +117,25 @@ async def summarize_meeting(file: UploadFile = File(...)) -> SummaryResponse:
         detected_language=transcription_result["language"],
         duration_seconds=transcription_result["duration"],
     )
+
+
+@app.get("/api/summaries", response_model=list[SavedSummaryResponse])
+async def get_summary_history(session: Session = Depends(get_session)) -> list[SavedSummaryResponse]:
+    records = list_summary_records(session)
+    return [SavedSummaryResponse(**record.to_response_dict()) for record in records]
+
+
+@app.get("/api/summaries/{record_id}", response_model=SavedSummaryResponse)
+async def get_summary_by_id(
+    record_id: int, session: Session = Depends(get_session)
+) -> SavedSummaryResponse:
+    record = get_summary_record(session, record_id)
+    if not record:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Summary not found.")
+    return SavedSummaryResponse(**record.to_response_dict())
+
+
+@app.delete("/api/summaries")
+async def clear_summary_history(session: Session = Depends(get_session)) -> dict:
+    deleted_count = clear_all_summary_records(session)
+    return {"deleted_count": deleted_count}

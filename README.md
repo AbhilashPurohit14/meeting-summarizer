@@ -31,8 +31,20 @@ flowchart LR
     C --> B
     B --> D
     D --> B
+    B --> G[(SQLite<br/>meeting_summarizer.db)]
     B -->|Structured JSON Response| A
 ```
+
+## Data Persistence
+
+Every successful `/api/summarize` call is saved to a local SQLite database (`backend/meeting_summarizer.db`, created automatically on first run) via `SQLModel`. This is a deliberate, minimal-footprint choice for a prototype: no external database server to provision, and the schema is defined directly from Pydantic-style models in `backend/database.py`.
+
+Stored per record: filename, full transcript, executive summary, key decisions, action items, detected language, duration, and a timestamp.
+
+Two read endpoints expose the history:
+
+- `GET /api/summaries` — the most recent 50 saved summaries
+- `GET /api/summaries/{id}` — a single saved summary by id
 
 ## Project Structure
 
@@ -40,6 +52,7 @@ flowchart LR
 backend/
   .env.example
   config.py
+  database.py
   main.py
   models.py
   requirements.txt
@@ -231,6 +244,5 @@ Response shape:
 ## Recommended Next Upgrades
 
 - Add diarization-aware rendering for multi-speaker meetings.
-- Persist summaries and transcripts in a database.
 - Add automated tests for prompt contract validation and API upload edge cases.
 - Introduce background task handling for longer recordings.

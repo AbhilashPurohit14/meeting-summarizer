@@ -148,10 +148,10 @@ class LLMService:
                     "Gemini free-tier quota was reached. Retry later or switch to another "
                     "Gemini Flash model available in your account."
                 )
-            elif "404" in error_message or "model" in error_message.lower():
+            elif "404" in error_message and "model" in error_message.lower():
                 detail = (
                     f'Gemini model "{self.settings.llm_model}" is not available for this key. '
-                    "Try a currently enabled Gemini Flash model in your account."
+                    f"Try a currently enabled Gemini Flash model in your account. (Raw: {error_message})"
                 )
             else:
                 detail = f"Summarization request failed: {exc}"

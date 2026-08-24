@@ -19,6 +19,11 @@ class SummaryResponse(BaseModel):
     duration_seconds: float | None = None
 
 
+class SavedSummaryResponse(SummaryResponse):
+    id: int
+    created_at: str
+
+
 class HealthResponse(BaseModel):
     status: str
 
